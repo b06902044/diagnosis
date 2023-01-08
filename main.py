@@ -37,7 +37,9 @@ def get_contrast(driver):
     frameOrder = driver.find_element_by_name("frameOrder")
     driver.switch_to.frame(frameOrder)
     wait = WebDriverWait(driver, 10)
-    return wait.until(EC.presence_of_element_located((By.CLASS_NAME, "attentionData"))).text
+    contrast = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "attentionData"))).text
+    driver.switch_to.default_content()
+    return contrast
 
 def quit(driver):
     time.sleep(5)
