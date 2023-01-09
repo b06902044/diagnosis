@@ -13,5 +13,3 @@
 2. Login 
    - user: G806
    - pass: G000000
-
-3. Click 醫囑審核

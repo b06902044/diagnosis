@@ -6,52 +6,73 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 
 MAIN_PAGE = "http://wonder.vghtc.gov.tw:8100/SmartWonder.Verify/indexTEDPC.jsp"
 
-def get_firefox_driver():
-    cwd = os.getcwd()
-    driver = webdriver.Firefox(executable_path = cwd + "/geckodriver")
-    driver.get(MAIN_PAGE)
-    return driver
+class Protocol:
+    def __init__(self, driver):
+        self.driver = driver
+        self.wait = WebDriverWait(driver, 10)
+        self.contrast = ""
+        
+    def switch_frame(self, sel, str):
+        element = self.driver.find_element(sel, str)
+        self.wait.until(EC.frame_to_be_available_and_switch_to_it(element))
 
-def login(driver):
-    driver.find_element_by_name('WonderID').send_keys('G806')
-    driver.find_element_by_name('WonderPassword').send_keys('G000000')
-    driver.find_element_by_name('login').click()
+    def login(self):
+        self.driver.get(MAIN_PAGE)
+        self.driver.find_element_by_name('WonderID').send_keys('G806')
+        self.driver.find_element_by_name('WonderPassword').send_keys('G000000')
+        self.driver.find_element_by_name('login').click()
 
-    try:
-        driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ENTER)
-    except:
-        print("got error from backend as expected")
+        try:
+            self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ENTER)
+        except:
+            print("got error from backend as expected")
 
-def navigate_new_window(driver):
-    driver.switch_to.frame("frameMenu")
-    time.sleep(3)
+    def switch_to_main_page(self):
+        self.switch_frame(By.ID, "frameMenu")
+        self.wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'menuBarText'))).click()
+        self.driver.switch_to.window(self.driver.window_handles[1])
+        time.sleep(3)
+    
+    def get_contrast(self):
+        self.switch_frame(By.NAME, "frameOrder")
+        contrast = self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "attentionData"))).text
+        print(contrast)
+        self.driver.switch_to.default_content()
+        time.sleep(3)
+    
+    def get_patient(self):
+        self.switch_frame(By.NAME, "frameQuery")
+        self.wait.until(EC.frame_to_be_available_and_switch_to_it("frameWorklist"))
+        
+        self.wait.until(EC.element_to_be_clickable((By.ID,"lstBdyQuery")))
+        # print(self.driver.page_source)
+        patients = self.wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR,"#lstBdyQuery tr")))
+        for p in patients:
+            actions = ActionChains(self.driver)
+            actions.move_to_element(p).perform()
+            time.sleep(3)
+            p.click()
+            self.get_contrast()
 
-    driver.find_element(By.CLASS_NAME, 'menuBarText').click()
-    driver.switch_to.window(driver.window_handles[1])
-    time.sleep(3)
-
-def get_contrast(driver):
-    frameOrder = driver.find_element_by_name("frameOrder")
-    driver.switch_to.frame(frameOrder)
-    wait = WebDriverWait(driver, 10)
-    contrast = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "attentionData"))).text
-    driver.switch_to.default_content()
-    return contrast
-
-def quit(driver):
-    time.sleep(5)
-    driver.quit() 
+    def quit(self):
+        time.sleep(5)
+        self.driver.quit()
 
 if __name__ == '__main__':
-    driver = get_firefox_driver()
-    login(driver)
-    navigate_new_window(driver)
-    contrast = get_contrast(driver)
-    print(contrast)
-    quit(driver)
+    cwd = os.getcwd()
+    driver = webdriver.Firefox(executable_path = cwd + "/geckodriver")
+
+    pro = Protocol(driver)
+
+    pro.login()
+    pro.switch_to_main_page()
+    pro.get_contrast()
+
+    pro.quit()
 
 
 
