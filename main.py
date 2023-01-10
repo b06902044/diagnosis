@@ -10,10 +10,11 @@ def getProtocol():
 
 if __name__ == '__main__':
     utils.init()
-    # p = getProtocol()    
+    p = getProtocol()    
 
-    # p.login()
-    # p.switch_to_main_page()
+    p.login()
+    p.switch_to_main_page()
+    p.do()
     # p.get_contrast()
 
     # p.quit()

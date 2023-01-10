@@ -1,10 +1,10 @@
 import time
+import patient
 
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 
 MAIN_PAGE = "http://wonder.vghtc.gov.tw:8100/SmartWonder.Verify/indexTEDPC.jsp"
 
@@ -17,6 +17,9 @@ class Protocol:
     def switch_frame(self, sel, str):
         element = self.driver.find_element(sel, str)
         self.wait.until(EC.frame_to_be_available_and_switch_to_it(element))
+    
+    def switch_default(self):
+        self.driver.switch_to.default_content()
 
     def login(self):
         self.driver.get(MAIN_PAGE)
@@ -34,27 +37,47 @@ class Protocol:
         self.wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'menuBarText'))).click()
         self.driver.switch_to.window(self.driver.window_handles[1])
         time.sleep(3)
-    
-    def get_contrast(self):
+        
+    def get_patient(self):
         self.switch_frame(By.NAME, "frameOrder")
         contrast = self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "attentionData"))).text
-        print(contrast)
-        self.driver.switch_to.default_content()
-        time.sleep(3)
-    
-    def get_patient(self):
+        diagnosis = self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "txtDiag"))).text
+        self.switch_default()
+        return patient.Patient(contrast=contrast, diagnosis=diagnosis)
+        
+    def has_patient(self):
         self.switch_frame(By.NAME, "frameQuery")
         self.wait.until(EC.frame_to_be_available_and_switch_to_it("frameWorklist"))
         
-        self.wait.until(EC.element_to_be_clickable((By.ID,"lstBdyQuery")))
-        # print(self.driver.page_source)
-        patients = self.wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR,"#lstBdyQuery tr")))
-        for p in patients:
-            actions = ActionChains(self.driver)
-            actions.move_to_element(p).perform()
+        exist = True
+        try:
+            self.driver.find_element(By.ID,"lstBdyQuery")
+        except:
+            exist = False
+            
+        self.switch_default()
+        return exist
+    
+    def write_result(self, result):
+        print("write reuslt = ", result)
+        self.switch_frame(By.NAME, "frameInfo")
+        self.wait.until(EC.presence_of_element_located((By.NAME, "Recommendation"))).send_keys(result)
+        self.switch_default()
+    
+    def do(self):
+        if self.has_patient(): # Todo: change to while
+            p = self.get_patient()
+            print("got patient with contrast = ", p.contrast)
+            print("got patient with diag = ", p.diagnosis)
+            
+            result = p.get_result()
+            if result != "":
+                print("write and store result")
+                self.write_result(result)
+            
             time.sleep(3)
-            p.click()
-            self.get_contrast()
+            
+        print("there is no patient")
 
     def quit(self):
         time.sleep(5)

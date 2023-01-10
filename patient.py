@@ -1,17 +1,13 @@
 class Patient:
     def __init__(self, contrast, diagnosis):
-        self.contrast = contrast 
+        self.contrast = contrast
         self.diagnosis = diagnosis
-        self.result = ""
         
-    def read_diagnosis(self):
+    def decide(self):
         return "some pattern"
         
-    def write_result(self):
-        if "B" in self.contrast:
-            self.result = "s"
-        elif "A" in self.contrast:
-            self.result = self.read_diagnosis()
-    
     def get_result(self):
-        return self.result
+        if "B" in self.contrast:
+            return "s"
+        elif "A" in self.contrast:
+            self.result = self.decide()
