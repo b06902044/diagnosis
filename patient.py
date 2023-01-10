@@ -1,10 +1,12 @@
+import utils
+
 class Patient:
     def __init__(self, contrast, diagnosis):
         self.contrast = contrast
         self.diagnosis = diagnosis
         
     def decide(self):
-        return "some pattern"
+        print(utils.dic)
         
     def get_result(self):
         if "B" in self.contrast:

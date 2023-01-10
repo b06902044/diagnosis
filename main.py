@@ -15,7 +15,6 @@ if __name__ == '__main__':
     p.login()
     p.switch_to_main_page()
     p.do()
-    # p.get_contrast()
 
     # p.quit()
     
