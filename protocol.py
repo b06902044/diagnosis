@@ -9,10 +9,11 @@ from selenium.webdriver.support import expected_conditions as EC
 MAIN_PAGE = "http://wonder.vghtc.gov.tw:8100/SmartWonder.Verify/indexTEDPC.jsp"
 
 class Protocol:
-    def __init__(self, driver):
+    def __init__(self, driver, user, password ):
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
-        self.contrast = ""
+        self.user = user
+        self.password = password
         
     def switch_frame(self, sel, str):
         element = self.driver.find_element(sel, str)
@@ -23,8 +24,8 @@ class Protocol:
 
     def login(self):
         self.driver.get(MAIN_PAGE)
-        self.driver.find_element_by_name('WonderID').send_keys('G806')
-        self.driver.find_element_by_name('WonderPassword').send_keys('G000000')
+        self.driver.find_element_by_name('WonderID').send_keys(self.user)
+        self.driver.find_element_by_name('WonderPassword').send_keys(self.password)
         self.driver.find_element_by_name('login').click()
 
         try:
@@ -58,10 +59,11 @@ class Protocol:
         self.switch_default()
         return exist
     
-    def write_result(self, result):
+    def save_result(self, result):
         print("write reuslt = ", result)
         self.switch_frame(By.NAME, "frameInfo")
         self.wait.until(EC.presence_of_element_located((By.NAME, "Recommendation"))).send_keys(result)
+        self.wait.until(EC.presence_of_element_located((By.ID, "btnProcess")))#.click()
         self.switch_default()
     
     def do(self):
@@ -73,7 +75,7 @@ class Protocol:
             result = p.get_result()
             if result != "":
                 print("write and store result")
-                self.write_result(result)
+                self.save_result(result)
             
             time.sleep(3)
             

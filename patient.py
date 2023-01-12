@@ -6,10 +6,12 @@ class Patient:
         self.diagnosis = diagnosis
         
     def decide(self):
-        print(utils.dic)
+        return "A"
         
     def get_result(self):
         if "B" in self.contrast:
             return "s"
         elif "A" in self.contrast:
-            self.result = self.decide()
+            return self.decide()
+        return ""
+        
